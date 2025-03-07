@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.utils.breaker;
 
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
+import com.comphenix.protocol.async.AsyncListenerHandler;
 import com.comphenix.protocol.events.ListenerPriority;
 import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketContainer;
@@ -201,6 +202,8 @@ public class BreakerSystem {
         }
     };
 
+    private AsyncListenerHandler asyncListenerHandler;
+
     private List<Location> furnitureBarrierLocations(FurnitureMechanic furnitureMechanic, Block block) {
         BukkitScheduler scheduler = breakerPerLocation.get(block.getLocation());
         if (scheduler == null) return List.of(block.getLocation());
@@ -291,7 +294,15 @@ public class BreakerSystem {
     }
 
     public void registerListener() {
-        ProtocolLibrary.getProtocolManager().addPacketListener(listener);
+        asyncListenerHandler = ProtocolLibrary.getProtocolManager().getAsynchronousManager().registerAsyncHandler(listener);
+        asyncListenerHandler.start();
+    }
+
+    public void unregisterListener() {
+        if (asyncListenerHandler != null) {
+            asyncListenerHandler.stop();
+            ProtocolLibrary.getProtocolManager().getAsynchronousManager().unregisterAsyncHandler(listener);
+        }
     }
 
     private BlockSounds getBlockSounds(Block block) {

@@ -53,6 +53,7 @@ public class OraxenPlugin extends JavaPlugin {
     private InvManager invManager;
     private ResourcePack resourcePack;
     private ClickActionManager clickActionManager;
+    private BreakerSystem breakerSystem;
     public static boolean supportsDisplayEntities;
 
     public OraxenPlugin() {
@@ -90,7 +91,8 @@ public class OraxenPlugin extends JavaPlugin {
         if (Settings.KEEP_UP_TO_DATE.toBool())
             new SettingsUpdater().handleSettingsUpdate();
         if (PluginUtils.isEnabled("ProtocolLib")) {
-            new BreakerSystem().registerListener();
+            breakerSystem = new BreakerSystem();
+            breakerSystem.registerListener();
             if (Settings.FORMAT_INVENTORY_TITLES.toBool())
                 ProtocolLibrary.getProtocolManager().addPacketListener(new InventoryPacketListener());
             ProtocolLibrary.getProtocolManager().addPacketListener(new TitlePacketListener());
@@ -144,6 +146,9 @@ public class OraxenPlugin extends JavaPlugin {
         for (Player player : Bukkit.getOnlinePlayers())
             if (GlyphHandlers.isNms())
                 NMSHandlers.getHandler().glyphHandler().uninject(player);
+
+        if (breakerSystem != null)
+            breakerSystem.unregisterListener();
 
         CompatibilitiesManager.disableCompatibilities();
         CommandAPI.onDisable();
